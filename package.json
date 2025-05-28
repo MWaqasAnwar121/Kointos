@@ -1,0 +1,43 @@
+{
+  "name": "crypto-website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@next-auth/mongodb-adapter": "^1.1.3",
+    "axios": "^1.7.7",
+    "bcryptjs": "^3.0.2",
+    "bootstrap": "^5.3.6",
+    "crypto-website": "file:",
+    "date-fns": "^2.30.0",
+    "framer-motion": "^12.12.1",
+    "google-adsense": "^0.0.3",
+    "mongodb": "^5.9.2",
+    "next": "^15.3.2",
+    "next-auth": "^4.24.11",
+    "react": "^19.1.0",
+    "react-bootstrap": "^2.10.10",
+    "react-dom": "^19.1.0",
+    "react-icons": "^5.0.1",
+    "react-select": "^5.8.0",
+    "recharts": "^2.15.2",
+    "sanity": "^3.63.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^8",
+    "eslint-config-next": "14.1.3",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
