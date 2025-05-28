@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import DarkModeToggle from '../../components/DarkModeToggle';
 import MobileMenu from '../../components/MobileMenu';
+import { useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 interface CoinData {
   id: string;
@@ -40,7 +42,10 @@ interface PriceData {
   price: number;
 }
 
-export default function CoinPage({ params }: { params: { id: string } }) {
+export default function CoinPage() {
+  const params = useParams();
+  const { data: session } = useSession();
+  const coinId = params?.id as string | undefined;
   const [coinData, setCoinData] = useState<CoinData | null>(null);
   const [priceHistory, setPriceHistory] = useState<PriceData[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -70,7 +75,7 @@ export default function CoinPage({ params }: { params: { id: string } }) {
         // Fetch coin data and price history in parallel
         const [coinResponse, priceResponse] = await Promise.all([
           fetch(
-            `https://api.coingecko.com/api/v3/coins/${params.id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`,
+            `https://api.coingecko.com/api/v3/coins/${coinId}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`,
             {
               headers: {
                 'Accept': 'application/json',
@@ -79,7 +84,7 @@ export default function CoinPage({ params }: { params: { id: string } }) {
             }
           ),
           fetch(
-            `https://api.coingecko.com/api/v3/coins/${params.id}/market_chart?vs_currency=usd&days=7&interval=daily`,
+            `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=7&interval=daily`,
             {
               headers: {
                 'Accept': 'application/json',
@@ -157,14 +162,14 @@ export default function CoinPage({ params }: { params: { id: string } }) {
     }, FETCH_COOLDOWN);
 
     return () => clearInterval(intervalId);
-  }, [params.id]);
+  }, [coinId]);
 
   if (loading && isInitialLoad) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading {params.id} data...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading {coinId} data...</p>
           {isLongLoading && (
             <div className="mt-4 max-w-md mx-auto">
               <p className="text-sm text-gray-500 dark:text-gray-400">
