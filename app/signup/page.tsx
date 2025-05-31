@@ -26,12 +26,13 @@ export default function SignUp() {
       return;
     }
     setLoading(true);
-    const res = await fetch("/api/auth/signup", {
+    const res = await fetch("/api/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, username }),
     });
     const data = await res.json();
+    console.log(data);
     setLoading(false);
     if (res.ok) {
       setSuccess("Account created! You can now log in.");

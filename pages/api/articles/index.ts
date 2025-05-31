@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]';
+import clientPromise from '../../../lib/mongodb';
 
 // In-memory storage for articles (replace with database in production)
 let articles = [
@@ -33,7 +34,11 @@ export default async function handler(
   switch (req.method) {
     case 'GET':
       // List all articles
-      return res.status(200).json(articles);
+
+      const client = await clientPromise;
+      const articles = client.db().collection('articles');
+      const existingArticles = await articles.find({});
+      return res.status(200).json(existingArticles);
 
     case 'POST':
       // Create new article

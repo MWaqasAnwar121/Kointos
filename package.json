@@ -18,6 +18,7 @@
     "framer-motion": "^12.12.1",
     "google-adsense": "^0.0.3",
     "mongodb": "^5.9.2",
+    "mongoose": "^8.15.1",
     "next": "^15.3.2",
     "next-auth": "^4.24.11",
     "react": "^19.1.0",

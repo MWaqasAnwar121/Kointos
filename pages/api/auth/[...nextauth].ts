@@ -1,4 +1,7 @@
 import NextAuth from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
+import type { Session } from 'next-auth';
+import type { SessionStrategy } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import clientPromise from '../../../lib/mongodb';
@@ -14,6 +17,7 @@ export const authOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null;
         const client = await clientPromise;
         const users = client.db().collection('users');
         const user = await users.findOne({ email: credentials.email });
@@ -27,7 +31,11 @@ export const authOptions = {
       },
     }),
   ],
-  session: { strategy: 'jwt' },
+  session: { 
+    strategy: 'jwt' as SessionStrategy,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
+  },
   pages: {
     signIn: '/login',
     signOut: '/login',
@@ -35,17 +43,34 @@ export const authOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }: { token: JWT; user: any; trigger?: string; session?: any }) {
       if (user) {
         token.username = user.username;
+        token.id = user.id;
       }
+      
+      // Handle session update
+      if (trigger === "update" && session) {
+        token = { ...token, ...session.user };
+      }
+      
       return token;
     },
-    async session({ session, token }) {
-      if (token.username) {
+    async session({ session, token }: { session: Session; token: JWT }) {
+      if (token) {
         session.user.username = token.username;
+        session.user.id = token.id;
+        session.error = token.error;
       }
       return session;
+    },
+  },
+  events: {
+    async signOut({ token }: { token: JWT }) {
+      // Clean up any session-related data if needed
+    },
+    async session({ session, token }: { session: Session; token: JWT }) {
+      // Handle session events
     },
   },
 };
