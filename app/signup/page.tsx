@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { CreateNewUser } from "@/actions";
 
 export default function SignUp() {
   const [email, setEmail] = useState("");
@@ -13,8 +14,9 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e:React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
     setError("");
     setSuccess("");
     if (!email || !password) {
@@ -26,20 +28,22 @@ export default function SignUp() {
       return;
     }
     setLoading(true);
-    const res = await fetch("/api/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, username }),
+    const data:any = await CreateNewUser({
+      email,
+      username,
+      password,
     });
-    const data = await res.json();
-    console.log(data);
     setLoading(false);
-    if (res.ok) {
-      setSuccess("Account created! You can now log in.");
-      setTimeout(() => router.push("/login"), 1500);
-    } else {
-      setError(data.error || "Something went wrong.");
-    }
+   if(!data.success){
+    setError(data.message);
+   }else{
+    setSuccess(data.message);
+    localStorage.setItem("user", JSON.stringify(data.user))
+    setTimeout(() => router.push("/login"), 1500);
+   }
+
+    
+
   };
 
   return (
@@ -49,6 +53,7 @@ export default function SignUp() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
+            name="email"
             placeholder="Email"
             className="input"
             value={email}
@@ -57,6 +62,7 @@ export default function SignUp() {
           />
           <input
             type="text"
+            name="username"
             placeholder="Username"
             className="input"
             value={username}
@@ -65,6 +71,7 @@ export default function SignUp() {
           />
           <input
             type="password"
+            name="password"
             placeholder="Password"
             className="input"
             value={password}
@@ -73,6 +80,7 @@ export default function SignUp() {
           />
           <input
             type="password"
+            name="confirmPassword"
             placeholder="Confirm Password"
             className="input"
             value={confirmPassword}

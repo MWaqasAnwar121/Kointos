@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 import MobileMenu from './MobileMenu';
 import DarkModeToggle from './DarkModeToggle';
+
 const Provider = ({ children }: { children: React.ReactNode }) => {
     const [theme, setTheme] = useState('light');
     const [isLoading, setIsLoading] = useState(true);
@@ -42,9 +43,10 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
         </div>
       );
     }
+
     return (
-        <SessionProvider>
-          <div className="flex flex-col min-h-screen">
+      <SessionProvider>
+        <div className="flex flex-col min-h-screen">
             <motion.nav 
               initial={{ y: -100 }}
               animate={{ y: 0 }}
@@ -76,11 +78,14 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
                     <Link href="/articles" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                       Articles
                     </Link>
+                    <Link href="/chatbot" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                      AI Chatbot
+                    </Link>
                     <Link href="/about" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                       About Us
                     </Link>
                   </div>
-                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-4">
                     <AuthButtons />
                     <DarkModeToggle />
                     <button
@@ -107,12 +112,12 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
                 transition={{ duration: 0.3 }}
                 className="flex-grow"
               >
-        {children}
+                {children}
               </motion.main>
             </AnimatePresence>
           </div>
-        </SessionProvider>
-    )
-    }
+      </SessionProvider>
+    );
+}
     
-    export default Provider
+export default Provider;

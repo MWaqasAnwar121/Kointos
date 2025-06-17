@@ -7,7 +7,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import DarkModeToggle from '../../components/DarkModeToggle';
 import MobileMenu from '../../components/MobileMenu';
 import { useParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 
 interface CoinData {
   id: string;
@@ -44,7 +43,6 @@ interface PriceData {
 
 export default function CoinPage() {
   const params = useParams();
-  const { data: session } = useSession();
   const coinId = params?.id as string | undefined;
   const [coinData, setCoinData] = useState<CoinData | null>(null);
   const [priceHistory, setPriceHistory] = useState<PriceData[]>([]);
@@ -252,6 +250,7 @@ export default function CoinPage() {
                       src={coinData.image}
                       alt={`${coinData.name} logo`}
                       fill
+                      sizes="4rem"
                       className="rounded-full"
                     />
                   </div>

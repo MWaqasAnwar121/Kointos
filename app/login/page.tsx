@@ -3,6 +3,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { LoginUser } from "@/actions";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -20,16 +21,16 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
+    const data=  await LoginUser({
+      email,password
+    })
+
     setLoading(false);
-    if (res?.error) {
-      setError(res.error === "CredentialsSignin" ? "Invalid email or password." : res.error);
-    } else if (res?.ok) {
-      router.push("/");
+    if (!data.success) {
+      setError(data.message);
+    } else {
+      localStorage.setItem("user", JSON.stringify(data.user))
+      router.push("/")
     }
   };
 

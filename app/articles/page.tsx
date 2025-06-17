@@ -2,12 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { FetchAllArticles } from '@/actions';
 
 interface Article {
-  id: string;
+  _id: string;
   title: string;
   content: string;
-  authorId: string;
+  userId: string;
   authorName: string;
   createdAt: string;
   updatedAt: string;
@@ -21,12 +22,12 @@ const ArticlesPage: React.FC = () => {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await fetch('/api/articles');
-        if (!response.ok) {
-          throw new Error('Failed to fetch articles');
+        const data = await FetchAllArticles()
+        if(data.success && data.articles) {
+          setArticles(data.articles)
+        } else {
+          setArticles([])
         }
-        const data = await response.json();
-        setArticles(data);
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -58,9 +59,9 @@ const ArticlesPage: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {articles.map(article => (
-          <div key={article.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+          <div key={article._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
             <div className="p-6">
-              <Link href={`/articles/${article.id}`} className="hover:underline">
+              <Link href={`/articles/${article._id}`} className="hover:underline">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{article.title}</h2>
               </Link>
               <p className="text-gray-700 dark:text-gray-300 text-sm mb-4 line-clamp-3">{article.content}</p>

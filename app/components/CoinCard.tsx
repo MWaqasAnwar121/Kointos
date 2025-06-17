@@ -35,6 +35,7 @@ export default function CoinCard({
                 src={image}
                 alt={`${name} logo`}
                 fill
+                sizes="3rem"
                 className="rounded-full"
               />
             </div>

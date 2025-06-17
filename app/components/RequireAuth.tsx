@@ -1,19 +1,25 @@
 "use client";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { status } = useSession();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.replace("/login");
-    }
-  }, [status, router]);
+    const checkAuth = () => {
+      const user = localStorage.getItem("user");
+      if (!user) {
+        router.replace("/login");
+      } else {
+        setIsLoading(false);
+      }
+    };
 
-  if (status === "loading") {
+    checkAuth();
+  }, []); // Empty dependency array since we only want to check once on mount
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -21,10 +27,5 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     );
   }
 
-  if (status === "authenticated") {
-    return <>{children}</>;
-  }
-
-  // While redirecting
-  return null;
+  return <>{children}</>;
 } 
