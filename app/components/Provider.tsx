@@ -45,7 +45,7 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-      <SessionProvider>
+      <SessionProvider refetchInterval={5 * 60} refetchOnWindowFocus={true}>
         <div className="flex flex-col min-h-screen">
             <motion.nav 
               initial={{ y: -100 }}
@@ -78,8 +78,8 @@ const Provider = ({ children }: { children: React.ReactNode }) => {
                     <Link href="/articles" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                       Articles
                     </Link>
-                    <Link href="/chatbot" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                      AI Chatbot
+                    <Link href="/subzero" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                      AI Tool
                     </Link>
                     <Link href="/about" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-gray-300 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                       About Us

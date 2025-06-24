@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { CreateNewArticle } from '@/actions';
 
 const NewArticlePage: React.FC = () => {
@@ -12,26 +13,15 @@ const NewArticlePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const [userData, setUserData] = useState<{
-    _id: string;
-    username: string;
-    email:string
-  }>()
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      try {
-        setUserData(JSON.parse(storedUser))
-      } catch (error) {
-        console.error("Error parsing user from localStorage:", error)
-        // Handle invalid JSON in localStorage if necessary
-        router.push("/login")
-      }
-    } else {
-      router.push("/login")
+    if (status === 'unauthenticated') {
+      router.replace('/login');
+    } else if (status === 'authenticated' && session?.user) {
+      setAuthorName(session.user.name || session.user.username || session.user.email || '');
     }
-  }, [router]); // Only depend on router
+  }, [status, session, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +31,7 @@ const NewArticlePage: React.FC = () => {
       return;
     }
 
-    if (!userData?._id) {
+    if (!session?.user?.id && !session?.user?._id) {
       setError('User not authenticated.');
       return;
     }
@@ -54,13 +44,13 @@ const NewArticlePage: React.FC = () => {
         title,
         authorName,
         content,
-        userId: userData._id
-      })
+        userId: session.user.id || session.user._id
+      });
 
       if(data.success) {
-        router.push('/articles')
+        router.push('/articles');
       } else {
-        setError(data.message)
+        setError(data.message);
       }
     } catch (err: any) {
       setError(err.message);
@@ -68,6 +58,18 @@ const NewArticlePage: React.FC = () => {
       setSaving(false);
     }
   };
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (status === 'unauthenticated') {
+    return null;
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -100,6 +102,7 @@ const NewArticlePage: React.FC = () => {
             value={authorName}
             onChange={(e) => setAuthorName(e.target.value)}
             required
+            disabled
           />
         </div>
 

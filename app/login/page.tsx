@@ -3,7 +3,6 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { LoginUser } from "@/actions";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -21,16 +20,29 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const data=  await LoginUser({
-      email,password
-    })
 
-    setLoading(false);
-    if (!data.success) {
-      setError(data.message);
-    } else {
-      localStorage.setItem("user", JSON.stringify(data.user))
-      router.push("/")
+    try {
+      // Get callback URL from params or default to dashboard
+      const callbackUrl = searchParams?.get("callbackUrl") || "/";
+      
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        console.log("Login successful, redirecting to:", callbackUrl);
+        // Force a hard navigation to ensure session is properly established
+        window.location.href = callbackUrl;
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("An error occurred during login");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -86,4 +98,4 @@ export default function Login() {
       </div>
     </div>
   );
-} 
+}

@@ -1,16 +1,16 @@
-
 import { Inter } from 'next/font/google';
-import './globals.css';
+import { SessionProvider } from "next-auth/react";
+import type { Metadata } from "next";
 import Provider from './components/Provider';
+import './globals.css';
 
 
 const inter = Inter({ subsets: ['latin'] });
 
-// Removed metadata export as it's not allowed in a 'use client' component.
-// export const metadata = {
-//   title: 'Kointos',
-//   description: 'Your crypto portfolio tracker',
-// };
+export const metadata: Metadata = {
+  title: "Your App",
+  description: "Your app description",
+};
 
 export default function RootLayout({
   children,
@@ -21,9 +21,13 @@ export default function RootLayout({
 
   return (
     <html lang="en" >
-      <body className={`${inter.className} min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300`}>
+      <body>
         <Provider>
-          {children}
+          <div className="flex flex-col min-h-screen">
+            <main className="flex-grow">
+              {children}
+            </main>
+          </div>
         </Provider>
       </body>
     </html>

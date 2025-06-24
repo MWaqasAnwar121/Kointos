@@ -15,38 +15,25 @@ interface Article {
 }
 
 const EditArticlePage: React.FC = () => {
-  const { id } = useParams();
+  const params = useParams();
   const router = useRouter();
   const { data: session, status } = useSession();
-
-  const articleId = id as string;
+  const articleId = params?.id as string | undefined;
+  
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      const currentPath = window.location.pathname;
+      router.push(`/login?callbackUrl=${encodeURIComponent(currentPath)}`);
+    }
+  }, [status, router]);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [authorName, setAuthorName] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
 
-  // Load user from localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const user = localStorage.getItem('user');
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-
-      try {
-        const parsed = JSON.parse(user);
-        setUserId(parsed?._id || null);
-      } catch {
-        setError('Failed to parse user from localStorage');
-      }
-    }
-  }, [router]);
-
-  // Fetch article after session is ready
   useEffect(() => {
     const fetchArticle = async () => {
       if (!articleId) {
@@ -57,22 +44,21 @@ const EditArticlePage: React.FC = () => {
 
       try {
         const response = await fetch(`/api/articles/${articleId}`);
-        if (!response.ok) throw new Error('Failed to fetch article');
+        if (!response.ok) {
+          throw new Error('Failed to fetch article');
+        }
+        const data = await response.json();
 
-        const data: Article = await response.json();
-
-        if (data.authorId !== session?.user?.id) {
+        // Check if user is the author
+        if (data.userId !== session?.user?.id) {
           throw new Error('You are not authorized to edit this article');
         }
 
         setTitle(data.title);
         setContent(data.content);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('An unknown error occurred');
-        }
+        setAuthorName(data.authorName);
+      } catch (err: any) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -80,16 +66,14 @@ const EditArticlePage: React.FC = () => {
 
     if (status === 'authenticated') {
       fetchArticle();
-    } else if (status === 'unauthenticated') {
-      router.push('/login');
     }
-  }, [articleId, session, status, router]);
+  }, [articleId, session, status]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title || !content) {
-      setError('Please fill in both title and content fields.');
+    if (!title || !authorName || !content ) {
+      setError('Please fill in all fields.');
       return;
     }
 
@@ -102,7 +86,13 @@ const EditArticlePage: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId, title, content }),
+        body: JSON.stringify({ 
+          userId: session?.user?.id,
+          title, 
+          authorName,
+          content,
+          
+        }),
       });
 
       if (!response.ok) {
@@ -110,18 +100,14 @@ const EditArticlePage: React.FC = () => {
       }
 
       router.push(`/articles/${articleId}`);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unknown error occurred');
-      }
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading || status === 'loading') {
+  if (loading) {
     return <div className="text-center text-gray-600 dark:text-gray-300">Loading article...</div>;
   }
 
@@ -130,38 +116,58 @@ const EditArticlePage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-center mb-8">Edit Article</h1>
+    <div className="container mx-auto px-4 py-12">
+      <h1 className="text-4xl font-bold text-center mb-12 text-gray-900 dark:text-white">Edit Article</h1>
+      
+      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-10 space-y-8">
+        {error && (
+          <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-6 py-4 rounded-lg relative mb-8" role="alert">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+        
+        <div className="space-y-8">
+          <div>
+            <label htmlFor="title" className="block text-xl font-bold text-gray-900 dark:text-white mb-3">Title</label>
+            <input
+              type="text"
+              id="title"
+              className="input mt-1 block w-full px-5 py-4 text-lg font-semibold border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-200"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
 
-      <form onSubmit={handleSubmit} className="max-w-lg mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <div className="mb-4">
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Title</label>
-          <input
-            type="text"
-            id="title"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
+          <div>
+            <label htmlFor="authorName" className="block text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Author Name</label>
+            <input
+              type="text"
+              id="authorName"
+              className="input mt-1 block w-full px-5 py-4 text-base font-medium border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-200"
+              value={authorName}
+              onChange={(e) => setAuthorName(e.target.value)}
+              required
+            />
+          </div>
+          
+          <div>
+            <label htmlFor="content" className="block text-base font-medium text-gray-700 dark:text-gray-300 mb-3">Content</label>
+            <textarea
+              id="content"
+              rows={14}
+              className="input mt-1 block w-full px-5 py-4 text-base border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 transition-colors duration-200"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+            ></textarea>
+          </div>
         </div>
-
-        <div className="mb-6">
-          <label htmlFor="content" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Content</label>
-          <textarea
-            id="content"
-            rows={10}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            required
-          ></textarea>
-        </div>
-
-        <div className="flex items-center justify-end">
+        
+        <div className="flex items-center justify-end pt-6">
           <button
             type="submit"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center px-8 py-4 border border-transparent text-lg font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             disabled={saving}
           >
             {saving ? 'Saving...' : 'Save Changes'}
@@ -172,4 +178,4 @@ const EditArticlePage: React.FC = () => {
   );
 };
 
-export default EditArticlePage;
+export default EditArticlePage; 
