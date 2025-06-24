@@ -20,16 +20,29 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
-    setLoading(false);
-    if (res?.error) {
-      setError(res.error === "CredentialsSignin" ? "Invalid email or password." : res.error);
-    } else if (res?.ok) {
-      router.push("/");
+
+    try {
+      // Get callback URL from params or default to dashboard
+      const callbackUrl = searchParams?.get("callbackUrl") || "/";
+      
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError(result.error);
+      } else {
+        console.log("Login successful, redirecting to:", callbackUrl);
+        // Force a hard navigation to ensure session is properly established
+        window.location.href = callbackUrl;
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("An error occurred during login");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,4 +98,4 @@ export default function Login() {
       </div>
     </div>
   );
-} 
+}

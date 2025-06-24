@@ -249,6 +249,7 @@ export default function News() {
                         src={item.imageurl || '/placeholder-news.jpg'}
                         alt={item.title}
                         fill
+                        sizes="(max-width: 768px) 100vw, 12rem"
                         className="object-cover"
                       />
                     </div>
@@ -261,6 +262,7 @@ export default function News() {
                             src={item.source_info.img || '/placeholder-source.jpg'}
                             alt={item.source_info.name}
                             fill
+                            sizes="1.5rem"
                             className="rounded-full"
                           />
                         </div>

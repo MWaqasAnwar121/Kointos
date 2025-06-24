@@ -5,6 +5,7 @@ import CoinCard from './components/CoinCard';
 import DarkModeToggle from './components/DarkModeToggle';
 import MobileMenu from './components/MobileMenu';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 interface Coin {
   id: string;
@@ -18,6 +19,7 @@ interface Coin {
 }
 
 export default function Home() {
+  const { data: session, status } = useSession();
   const [coins, setCoins] = useState<Coin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -156,6 +158,11 @@ export default function Home() {
       return matchesSearch && matchesPriceRange && matchesMarketCap;
     });
   }, [coins, debouncedSearchTerm, priceRange, marketCapFilter]);
+
+  useEffect(() => {
+    console.log('Session status:', status);
+    console.log('Session data:', session);
+  }, [session, status]);
 
   if (loading && isInitialLoad) {
     return (

@@ -1,29 +1,66 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
-import Link from 'next/link';
-import UserMenu from './UserMenu';
+import { useSession, signIn, signOut } from 'next-auth/react';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
-export default function AuthButtons() {
+const AuthButtons = () => {
   const { data: session, status } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+  const pathname = usePathname(); // Get current path
+
+  const handleSignOut = async () => {
+    setIsLoading(true);
+    await signOut({ callbackUrl: '/' });
+    setIsLoading(false);
+  };
 
   if (status === 'loading') {
-    return <div className="w-24 h-8 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>; // Loading state
+    return (
+      <div className="h-10 w-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+    );
   }
 
-  if (status === 'authenticated') {
-    return <UserMenu />;
+  if (session && session.user) {
+    return (
+      <div className="flex items-center space-x-2">
+        <span className="text-sm text-gray-700 dark:text-gray-300 hidden md:inline">
+          {session.user.name || session.user.email}
+        </span>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleSignOut}
+          disabled={isLoading}
+          className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md transition"
+        >
+          {isLoading ? 'Signing out...' : 'Sign Out'}
+        </motion.button>
+      </div>
+    );
   }
 
-  // status === 'unauthenticated'
   return (
-    <div className="flex items-center space-x-4">
-      <Link href="/login" className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-gray-700 transition">
+    <>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => signIn(undefined, { callbackUrl: pathname })}
+        className="text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 px-3 py-1 rounded-md transition"
+      >
         Sign In
-      </Link>
-      <Link href="/signup" className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+      </motion.button>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => signIn(undefined, { callbackUrl: pathname })}
+        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md transition"
+      >
         Sign Up
-      </Link>
-    </div>
+      </motion.button>
+    </>
   );
-} 
+};
+
+export default AuthButtons;

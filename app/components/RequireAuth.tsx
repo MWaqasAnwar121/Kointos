@@ -1,11 +1,11 @@
 "use client";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
-  const { status } = useSession();
   const router = useRouter();
+  const { status } = useSession();
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -25,6 +25,6 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  // While redirecting
+  // Prevent flicker if unauthenticated
   return null;
 } 
